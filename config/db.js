@@ -1,14 +1,22 @@
 const mongoose = require('mongoose');
+const dns = require('dns');
 
-const connectDB = async () => {
-  try {
-    const connStr = process.env.MONGO_URI || "mongodb://localhost:27017/LuckyDrawPrizeUpdateDB";
-    await mongoose.connect(connStr);
-    console.log("MongoDB connected successfully");
-  } catch (error) {
-    console.error("MongoDB connection failed:", error.message);
-    process.exit(1);
-  }
+// Set DNS servers to Google and Cloudflare to resolve MongoDB SRV records reliably
+try {
+  dns.setServers(['8.8.8.8', '1.1.1.1']);
+} catch (e) {
+  console.warn("Could not set custom DNS servers:", e.message);
+}
+
+const connectDB = () => {
+  const URL = process.env.MONGO_URI;
+  return mongoose.connect(URL)
+    .then(() => {
+      console.log("MongoDB connected");
+    })
+    .catch((err) => {
+      console.log(err);
+    });
 };
 
 module.exports = connectDB;
