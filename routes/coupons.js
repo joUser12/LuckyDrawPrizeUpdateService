@@ -71,7 +71,8 @@ router.post('/', async (req, res) => {
 // @route   GET /api/coupons
 // @desc    Get all coupons (Admin/Customer) or coupons created by logged in user (Agent)
 // @access  Private
-router.get('/', protect, async (req, res) => {
+//  protect,
+router.get('/', async (req, res) => {
   try {
     let coupons;
 
