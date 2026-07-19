@@ -8,7 +8,10 @@ const { protect } = require('../middleware/auth');
 // @access  Public
 router.get('/public', async (req, res) => {
   try {
-    const coupons = await Coupon.find();
+    const coupons = await Coupon.find()
+      .select('couponNumber prizeName prizeNumber customerName agentName createdAt')
+      .sort('-createdAt')
+      .lean();
 
     res.status(200).json({
       success: true,
@@ -78,11 +81,13 @@ router.get('/', async (req, res) => {
       // Admin and Customer see all coupons
       coupons = await Coupon.find()
         .populate('createdBy', 'name email')
-        .sort('-createdAt');
+        .sort('-createdAt')
+        .lean();
     } else {
       // Agent only sees their own coupons
       coupons = await Coupon.find({ createdBy: req.user._id })
-        .sort('-createdAt');
+        .sort('-createdAt')
+        .lean();
     }
 
     res.status(200).json({

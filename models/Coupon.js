@@ -38,4 +38,10 @@ const CouponSchema = new mongoose.Schema({
   }
 });
 
+// Index for sorting by createdAt (public results and admin view)
+CouponSchema.index({ createdAt: -1 });
+
+// Compound index for filtering by agent and sorting by createdAt
+CouponSchema.index({ createdBy: 1, createdAt: -1 });
+
 module.exports = mongoose.model('Coupon', CouponSchema);
