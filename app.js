@@ -8,16 +8,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Database Connection Middleware (ensures connection is alive on every request, key for serverless)
-app.use(async (req, res, next) => {
-  try {
-    await connectDB();
-    next();
-  } catch (error) {
-    res.status(500).json({ success: false, message: 'Database connection failed' });
-  }
-});
-
 // Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/coupons', require('./routes/coupons'));
