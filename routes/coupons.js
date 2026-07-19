@@ -8,9 +8,7 @@ const { protect } = require('../middleware/auth');
 // @access  Public
 router.get('/public', async (req, res) => {
   try {
-    const coupons = await Coupon.find()
-      .select('couponNumber prizeName prizeNumber customerName agentName createdAt')
-      .sort('-createdAt');
+    const coupons = await Coupon.find();
 
     res.status(200).json({
       success: true,
@@ -33,18 +31,18 @@ router.post('/', async (req, res) => {
 
     // Validation
     if (!couponNumber || !prizeName || !prizeNumber || !customerName || !agentName) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Please provide all details: coupon number, prize name, prize number, customer name, and agent name' 
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide all details: coupon number, prize name, prize number, customer name, and agent name'
       });
     }
 
     // Check if coupon number already exists
     const couponExists = await Coupon.findOne({ couponNumber });
     if (couponExists) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'A coupon with this number already exists' 
+      return res.status(400).json({
+        success: false,
+        message: 'A coupon with this number already exists'
       });
     }
 
@@ -111,9 +109,9 @@ router.delete('/:id', protect, async (req, res) => {
 
     // Allow Admin to delete any, and Agent to delete only their own
     if (req.user.role !== 'admin' && coupon.createdBy.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ 
-        success: false, 
-        message: 'Not authorized. You can only delete your own coupon entries' 
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized. You can only delete your own coupon entries'
       });
     }
 

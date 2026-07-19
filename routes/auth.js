@@ -7,8 +7,8 @@ const { protect } = require('../middleware/auth');
 // Helper to generate JWT Token
 const generateToken = (id) => {
   return jwt.sign(
-    { id }, 
-    process.env.JWT_SECRET || 'super_secret_lucky_draw_key_2026_jwt_token_auth', 
+    { id },
+    process.env.JWT_SECRET || 'super_secret_lucky_draw_key_2026_jwt_token_auth',
     { expiresIn: '30d' }
   );
 };
