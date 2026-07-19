@@ -26,7 +26,8 @@ router.get('/public', async (req, res) => {
 // @route   POST /api/coupons
 // @desc    Create a new coupon detail entry
 // @access  Private (Agent or Admin)
-router.post('/', protect, async (req, res) => {
+//  protect,
+router.post('/', async (req, res) => {
   try {
     const { couponNumber, prizeName, prizeNumber, customerName, agentName } = req.body;
 
