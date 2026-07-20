@@ -27,8 +27,7 @@ router.get('/public', async (req, res) => {
 // @route   POST /api/coupons
 // @desc    Create a new coupon detail entry
 // @access  Private (Agent or Admin)
-//  protect,
-router.post('/', async (req, res) => {
+router.post('/', protect, async (req, res) => {
   try {
     const { couponNumber, prizeName, prizeNumber, customerName, agentName } = req.body;
 
@@ -72,23 +71,13 @@ router.post('/', async (req, res) => {
 // @route   GET /api/coupons
 // @desc    Get all coupons (Admin/Customer) or coupons created by logged in user (Agent)
 // @access  Private
-//  protect,
-router.get('/', async (req, res) => {
+router.get('/', protect, async (req, res) => {
   try {
-    let coupons;
-
-    if (req.user.role === 'admin' || req.user.role === 'customer') {
-      // Admin and Customer see all coupons
-      coupons = await Coupon.find()
-        .populate('createdBy', 'name email')
-        .sort('-createdAt')
-        .lean();
-    } else {
-      // Agent only sees their own coupons
-      coupons = await Coupon.find({ createdBy: req.user._id })
-        .sort('-createdAt')
-        .lean();
-    }
+    // Fetch all coupons sorted by creation date
+    const coupons = await Coupon.find()
+      .populate('createdBy', 'name email')
+      .sort('-createdAt')
+      .lean();
 
     res.status(200).json({
       success: true,
