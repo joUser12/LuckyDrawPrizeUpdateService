@@ -16,6 +16,7 @@ app.get('/', (req, res) => {
   res.send('Lucky Draw Prize Update API is running...');
 });
 
+
 const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
