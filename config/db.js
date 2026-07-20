@@ -9,7 +9,7 @@ try {
 }
 
 const connectDB = () => {
-  const URL = process.env.MONGO_URI;
+  const URL = "mongodb+srv://joysundaran15_db_user:LuckyDraw20226@cluster0.u13fsox.mongodb.net/Lucky?retryWrites=true&w=majority";
   return mongoose.connect(URL)
     .then(() => {
       console.log("MongoDB connected");
