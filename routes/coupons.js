@@ -3,6 +3,67 @@ const router = express.Router();
 const Coupon = require('../models/Coupon');
 const { protect } = require('../middleware/auth');
 
+// In-memory list of connected SSE clients
+let sseClients = [];
+
+// Helper function to broadcast new winner events to all connected SSE clients
+const broadcastWinner = (coupon) => {
+  const payload = JSON.stringify(coupon);
+  sseClients.forEach((client) => {
+    try {
+      client.res.write(`event: new-winner\ndata: ${payload}\n\n`);
+      client.res.write(`event: winner_update\ndata: ${payload}\n\n`);
+      client.res.write(`data: ${payload}\n\n`);
+    } catch (err) {
+      console.error('Error sending SSE message to client:', err);
+    }
+  });
+};
+
+// @route   GET /api/coupons/stream
+// @desc    Server-Sent Events (SSE) stream endpoint for real-time winner updates
+// @access  Public
+router.get('/stream', (req, res) => {
+  // Set headers for SSE stream
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache, no-transform',
+    'Connection': 'keep-alive',
+    'X-Accel-Buffering': 'no',
+    'Access-Control-Allow-Origin': '*'
+  });
+
+  if (res.flushHeaders) {
+    res.flushHeaders();
+  }
+
+  // Send initial connection message
+  res.write(': connected\n\n');
+
+  // Register client
+  const clientId = Date.now() + Math.random().toString(36).substring(2, 9);
+  const newClient = { id: clientId, res };
+  sseClients.push(newClient);
+
+  console.log(`[SSE] Client connected: ${clientId}. Total clients: ${sseClients.length}`);
+
+  // Send periodic keep-alive heartbeat comment every 20 seconds
+  const heartbeat = setInterval(() => {
+    try {
+      res.write(': keepalive\n\n');
+    } catch (err) {
+      // Stream may be closed
+    }
+  }, 20000);
+
+  // Clean up connection when client closes stream
+  req.on('close', () => {
+    clearInterval(heartbeat);
+    sseClients = sseClients.filter((client) => client.id !== clientId);
+    console.log(`[SSE] Client disconnected: ${clientId}. Remaining clients: ${sseClients.length}`);
+  });
+});
+
 // @route   GET /api/coupons/public
 // @desc    Get all coupons (Public results showcase)
 // @access  Public
@@ -57,6 +118,9 @@ router.post('/', protect, async (req, res) => {
       agentName,
       createdBy: req.user._id
     });
+
+    // Broadcast real-time SSE event to all connected dashboards
+    broadcastWinner(coupon);
 
     res.status(201).json({
       success: true,
