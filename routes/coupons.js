@@ -185,4 +185,63 @@ router.delete('/:id', protect, async (req, res) => {
   }
 });
 
+// @route   PUT /api/coupons/:id
+// @desc    Update a coupon entry
+// @access  Private (Admin or Agent owner)
+router.put('/:id', protect, async (req, res) => {
+  try {
+    const { couponNumber, prizeName, prizeNumber, customerName, agentName } = req.body;
+
+    // Validation
+    if (!couponNumber || !prizeName || !prizeNumber || !customerName || !agentName) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide all details: coupon number, prize name, prize number, customer name, and agent name'
+      });
+    }
+
+    let coupon = await Coupon.findById(req.params.id);
+
+    if (!coupon) {
+      return res.status(404).json({ success: false, message: 'Coupon not found' });
+    }
+
+    // Check if coupon number already exists for a different coupon
+    const couponExists = await Coupon.findOne({ couponNumber, _id: { $ne: req.params.id } });
+    if (couponExists) {
+      return res.status(400).json({
+        success: false,
+        message: 'A coupon with this number already exists'
+      });
+    }
+
+    // Allow Admin to edit any, and Agent to edit only their own
+    if (req.user.role !== 'admin' && coupon.createdBy.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized. You can only edit your own coupon entries'
+      });
+    }
+
+    coupon.couponNumber = couponNumber;
+    coupon.prizeName = prizeName;
+    coupon.prizeNumber = prizeNumber;
+    coupon.customerName = customerName;
+    coupon.agentName = agentName;
+
+    await coupon.save();
+
+    // Broadcast SSE update event
+    broadcastWinner(coupon);
+
+    res.status(200).json({
+      success: true,
+      coupon
+    });
+  } catch (error) {
+    console.error('Update coupon error:', error);
+    res.status(500).json({ success: false, message: 'Server error updating coupon' });
+  }
+});
+
 module.exports = router;
