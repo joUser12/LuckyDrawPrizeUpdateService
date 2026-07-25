@@ -11,6 +11,7 @@ app.use(express.json());
 // Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/coupons', require('./routes/coupons'));
+app.use('/api/books', require('./routes/books'));
 
 app.get('/', (req, res) => {
   res.send('Lucky Draw Prize Update API is running...');
